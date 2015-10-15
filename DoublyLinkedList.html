@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>DoblyLinkedList</title>
+</head>
+<body>
+  <script>
+
+//----------------------------------Node--------------------------------[Begin]
+  var DLNode = function(item, previousNode, nextNode){
+    this.item = item;
+    this.previous = (this._isDLNode(previousNode))?previousNode:null;
+    this.next = (this._isDLNode(nextNode))?nextNode:null;
+  };
+
+  DLNode.prototype._isDLNode = function(obj) {
+    if ((obj===undefined)||(obj===null)){
+      return false;
+    }else{
+      return obj.constructor.toString().indexOf("DLNode") > -1;
+    };
+  };
+//----------------------------------Node----------------------------------[end]
+
+//----------------------------------List--------------------------------[Begin]
+//it's zero-based
+  var DLList = function(){
+    this.head=null;
+    this.tail=null;
+    this.count = 0;
+  };
+
+  DLList.prototype.append = function(item){
+    if (this.tail===null){
+      this.tail= new DLNode(item);
+      this.head = this.tail;
+    }else{
+      this.tail.next = new DLNode(item, this.tail);
+      this.tail = this.tail.next;
+    };
+    this.count++;
+    return this;
+  };
+
+  DLList.prototype._validateIndexByType = function(index){
+    function isInt(item) {
+      var parsed = parseInt(item, 10);
+      return ((!isNaN(parsed)) && (item == parsed) && (item.toString() == parsed.toString()));
+    };
+
+    if (!isInt(index)) {
+      throw { name: "IndexError", message: "Index is not an Int"};
+    };
+  };
+
+  DLList.prototype._isExist = function(index){
+    return ((index>=0)&&(index<this.count));
+  };
+
+  DLList.prototype._validateIndexByExisting = function(index){
+    this._validateIndexByType(index);
+    if (!this._isExist(index)){
+      throw {name: "IndexError", message: "Index out of range"};
+    };
+  };
+
+  DLList.prototype._nodeAt = function(index){
+    try{
+      this._validateIndexByExisting(index);
+      var nodeAt = this.head;
+      for (var i = 1; i <= index ; i++) {
+        nodeAt = nodeAt.next;
+      };
+      return nodeAt;
+    } catch(err){
+        console.log("Error!\n  Error name: %s;\n  Message: %s;\n  Argument: %s.", err.name, err.message, index);
+        throw err;
+    }
+  };
+
+  DLList.prototype.at = function(index){
+    return this._nodeAt(index).item;
+  };
+
+  DLList.prototype.deleteAt = function(index){
+    var target = this._nodeAt(index);
+
+    if (target.previous===null) {
+      if(target.next===null){
+        this.head = null;
+        this.tail = this.head;
+      }else{
+        this.head = target.next;
+        target.next.previous = null;
+      };
+    }else{
+      if(target.next===null){
+        target.previous.next = null;
+        this.tail = target.previous;
+      }else{
+        target.next.previous = target.previous;
+        target.previous.next = target.next;
+      };
+    };
+
+    return this;
+  };
+
+  DLList.prototype.insertAt = function(index, item){
+    this._validateIndexByType(index);
+    try{
+        if (index<0){
+          throw {name: "IndexError", message: "Index out of range"};
+        };
+      }catch(err){
+        console.log("Error!\n  Error name: %s;\n  Message: %s;\n  Argument: %s.", err.name, err.message, index);
+        throw err;
+      };
+
+    if (!this._isExist(index)) {
+      var tempCount = this.count
+      for (var i = tempCount; i < index; i++) {
+        this.append(null);
+        this.count++;
+      };
+      this.append(item);
+    }else{
+      var detachedHead = this._nodeAt(index);
+      var detachedTail = this.tail;
+
+      if (this.head===this.detachedHead){
+        this.head = null;
+      };
+      this.tail = detachedHead.previous;
+      this.append(item);
+      this.tail.next = detachedHead;
+      this.tail.next.previous = this.tail;
+      this.tail = detachedTail;
+    };
+    return this;
+  };
+
+  DLList.prototype.reverse = function(){
+    var currNode = this.head;
+
+    while(currNode!==null){
+      var temp = currNode.next;
+      currNode.next = currNode.previous;
+      currNode.previous = temp;
+      if (currNode.previous!==null) {
+        currNode = currNode.previous;
+      }else{
+        break;
+      };
+    };
+    this.tail = this.head;
+    this.head = currNode;
+
+    return this;
+  };
+
+  DLList.prototype.each = function(func){
+    var currNode = this.head;
+    var result;
+    while (currNode!==null){
+      result = func.call(currNode.item);
+      if(result!==undefined){
+        currNode.item = result;
+      };
+      currNode=currNode.next;
+    };
+    return this;
+  };
+
+  DLList.prototype.indexOF = function(item){
+    var index;
+    var current = this.head;
+    for (var i = 0; i<this.count; i++) {
+      if(current.item===item){
+        index = i;
+        break;
+      };
+      current = current.next;
+    };
+    return index;
+  };
+//----------------------------------List----------------------------------[end]
+
+//------------Test:-------------------
+var dll = new DLList();
+dll.append(10).append(15).append(20);
+
+var f1 = function(){
+  alert(this*2);
+};
+
+var f2 = function(){
+  alert(this*2);
+};
+//-----------------------------------
+  </script>
+</body>
+
+
+</html>
